@@ -7,7 +7,7 @@
 /DartConfiguration.tcl
 /install_manifest.txt
 Makefile
-
+build-*/
 /bin
 /lib
 /Misc/

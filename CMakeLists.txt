@@ -386,12 +386,12 @@ if(UNIX)
     configure_file(cmake/config-unix/pyconfig.h.in
                    ${PYCONFIG_BUILD_DIR}/pyconfig.h)
 elseif(WIN32)
-    set(PYCONFIG_BUILD_DIR ${SRC_DIR}/PC) # In a windows build tree, 'pyconfig.h' is NOT required to
-                                          # live along side the python executable.
-                                          # See function '_init_posix()' and '_init_non_posix()'
-                                          # in 'Lib/sysconfig.py'
-    if(MINGW)
-      set(PYCONFIG_BUILD_DIR cmake/config-mingw)
+    # In a windows build tree, 'pyconfig.h' is NOT required to live along side the python executable.
+	# See function '_init_posix()' and '_init_non_posix()' in 'Lib/sysconfig.py'
+	if(MINGW)
+		set(PYCONFIG_BUILD_DIR cmake/config-mingw)
+    else()
+		set(PYCONFIG_BUILD_DIR ${SRC_DIR}/PC) 
     endif()
 endif()
 

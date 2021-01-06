@@ -75,28 +75,8 @@ WIN32 is still required for the locale module.
     #if defined(MS_WIN32) && !defined(MS_WIN64)
 */
 
-#if !defined(MS_WIN64) && defined(__MINGW64__)
-#  define MS_WIN64
-#endif
-
-#ifdef MS_WIN64
-#  define MS_WINX64
-#endif
-
-/* set the version macros for the windows headers */
-#ifdef MS_WINX64
-/* 64 bit only runs on XP or greater */
-#  define Py_WINVER _WIN32_WINNT_WINXP
-#  define Py_NTDDI NTDDI_WINXP
-#else
-/* Python 2.6+ requires Windows 2000 or greater */
-#  ifdef _WIN32_WINNT_WIN2K
-#    define Py_WINVER _WIN32_WINNT_WIN2K
-#  else
-#    define Py_WINVER 0x0500
-#  endif
-#  define Py_NTDDI NTDDI_WIN2KSP4
-#endif
+#define Py_WINVER _WIN32_WINNT_WIN7 //0x0601
+#define Py_NTDDI NTDDI_WIN7	//0x0601
 
 /* We only set these values when building Python - we don't want to force
    these values on extensions, as that will affect the prototypes and
@@ -121,9 +101,9 @@ WIN32 is still required for the locale module.
 #define HAVE_SSIZE_T 1
 
 #include <float.h>
-#define Py_IS_NAN _isnan
-#define Py_IS_INFINITY(X) (!_finite(X) && !_isnan(X))
-#define Py_IS_FINITE(X) _finite(X)
+#define Py_IS_NAN _isnanf
+#define Py_IS_INFINITY(X) (!_finitef(X) && !_isnanf(X))
+#define Py_IS_FINITE(X) _finitef(X)
 #define copysign _copysign
 
 #include <basetsd.h>
@@ -222,41 +202,6 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 
 #endif /* MS_WIN32 */
 
-/* define signed and unsigned exact-width 32-bit and 64-bit types, used in the
-   implementation of Python long integers. */
-#ifndef PY_UINT32_T
-#if SIZEOF_INT == 4
-#define HAVE_UINT32_T 1
-#define PY_UINT32_T unsigned int
-#elif SIZEOF_LONG == 4
-#define HAVE_UINT32_T 1
-#define PY_UINT32_T unsigned long
-#endif
-#endif
-
-#ifndef PY_UINT64_T
-#if SIZEOF_LONG_LONG == 8
-#define HAVE_UINT64_T 1
-#define PY_UINT64_T unsigned PY_LONG_LONG
-#endif
-#endif
-
-#ifndef PY_INT32_T
-#if SIZEOF_INT == 4
-#define HAVE_INT32_T 1
-#define PY_INT32_T int
-#elif SIZEOF_LONG == 4
-#define HAVE_INT32_T 1
-#define PY_INT32_T long
-#endif
-#endif
-
-#ifndef PY_INT64_T
-#if SIZEOF_LONG_LONG == 8
-#define HAVE_INT64_T 1
-#define PY_INT64_T PY_LONG_LONG
-#endif
-#endif
 
 /* Fairly standard from here! */
 
@@ -382,7 +327,7 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 
 /* Define as the size of the unicode type. */
 /* This is enough for unicodeobject.h to do the "right thing" on Windows. */
-#define Py_UNICODE_SIZE 2
+#define SIZEOF_WCHAR_T 2
 
 /* Use Python's own small-block memory-allocator. */
 #define WITH_PYMALLOC 1
