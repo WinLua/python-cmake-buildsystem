@@ -277,7 +277,7 @@ set(PYTHON_VERSION "${PY_VERSION}" CACHE STRING "The version of Python to build.
 # Apply patches
 option(PYTHON_APPLY_PATCHES "Apply patches" ON)
 if(PYTHON_APPLY_PATCHES)
-  include(cmake/PythonApplyPatches.cmake)
+	include(cmake/DoPythonPatches.cmake)
 endif()
 
 # Convenience boolean variables to easily test python version
