@@ -1,0 +1,35 @@
+include(cmake/CMakeApplyPatches.cmake)
+
+set(_py_version ${PY_VERSION})
+if("${PY_VERSION}" VERSION_LESS "3.0")
+  if("${PY_VERSION}" VERSION_EQUAL "2.7.13" OR "${PY_VERSION}" VERSION_EQUAL "2.7.14")
+    set(_py_version "2.7.13")
+    message(STATUS "Using ${_py_version} patches for 2.7.13 and 2.7.14")
+  endif()
+  if("${PY_VERSION}" VERSION_EQUAL "2.7.15" OR "${PY_VERSION}" VERSION_GREATER "2.7.15")
+    set(_py_version "2.7.15")
+    message(STATUS "Using ${_py_version} patches for 2.7.15 <= PY_VERSION < 3.0.0")
+  endif()
+endif()
+
+# Apply patches
+_apply_patches("${PY_VERSION_MAJOR}.${PY_VERSION_MINOR}")
+_apply_patches("${_py_version}")
+_apply_patches("${_py_version}/${CMAKE_SYSTEM_NAME}")
+_apply_patches("${_py_version}/${CMAKE_SYSTEM_NAME}-${CMAKE_C_COMPILER_ID}")
+
+if(MINGW)
+	_apply_patches("${PY_VERSION_MAJOR}.${PY_VERSION_MINOR}/mingw")
+endif()
+
+set(_version ${CMAKE_C_COMPILER_VERSION})
+if(MSVC)
+  set(_version ${MSVC_VERSION})
+  if ("${MSVC_VERSION}" VERSION_LESS "2000" AND
+    ("${MSVC_VERSION}" VERSION_EQUAL "1900" OR "${MSVC_VERSION}" VERSION_GREATER "1900"))
+    set(_version "1900")
+  else()
+    set(_version ${MSVC_VERSION})
+  endif()
+endif()
+_apply_patches("${_py_version}/${CMAKE_SYSTEM_NAME}-${CMAKE_C_COMPILER_ID}/${_version}")
