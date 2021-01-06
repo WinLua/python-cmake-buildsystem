@@ -1,0 +1,169 @@
+diff -ru Python-3.6.7_clean/Include/pylifecycle.h Python-3.6.7/Include/pylifecycle.h
+--- Python-3.6.7/Include/pylifecycle.h	2018-10-20 01:24:09.000000000 -0400
++++ Python-3.6.7_patched/Include/pylifecycle.h	2021-01-03 02:38:03.813756479 -0500
+@@ -60,7 +60,7 @@
+ PyAPI_FUNC(wchar_t *) Py_GetPath(void);
+ PyAPI_FUNC(void)      Py_SetPath(const wchar_t *);
+ #ifdef MS_WINDOWS
+-int _Py_CheckPython3();
++PyAPI_FUNC(int) _Py_CheckPython3(void);
+ #endif
+ 
+ /* In their own files */
+diff -ru Python-3.6.7_clean/Modules/posixmodule.c Python-3.6.7/Modules/posixmodule.c
+--- Python-3.6.7/Modules/posixmodule.c	2018-10-20 01:24:09.000000000 -0400
++++ Python-3.6.7_patched/Modules/posixmodule.c	2021-01-05 18:41:02.575102730 -0500
+@@ -177,6 +177,19 @@
+ #define HAVE_FSYNC      1
+ #define fsync _commit
+ #else
++#if defined(__MINGW32__)
++#define HAVE_EXECV      1
++#if defined(__USLC__) && defined(__SCO_VERSION__)       /* SCO UDK Compiler */
++#define HAVE_FORK1      1
++#endif
++#define HAVE_GETCWD     1
++#define HAVE_OPENDIR    1
++#define HAVE_PIPE       1
++#ifndef __rtems__
++#define HAVE_POPEN      1
++#endif
++#define HAVE_SYSTEM     1
++#else /* all other compilers */
+ /* Unix functions that the configure script doesn't check for */
+ #define HAVE_EXECV      1
+ #define HAVE_FORK       1
+@@ -194,6 +207,7 @@
+ #define HAVE_SYSTEM     1
+ #define HAVE_WAIT       1
+ #define HAVE_TTYNAME    1
++#endif  /* _MINGW32_ */
+ #endif  /* _MSC_VER */
+ #endif  /* ! __WATCOMC__ || __QNX__ */
+ 
+@@ -204,7 +218,7 @@
+ [clinic start generated code]*/
+ /*[clinic end generated code: output=da39a3ee5e6b4b0d input=94a0f0f978acae17]*/
+ 
+-#ifndef _MSC_VER
++#if !defined(_MSC_VER) && !defined(__MINGW32__)
+ 
+ #if defined(__sgi)&&_COMPILER_VERSION>=700
+ /* declare ctermid_r if compiling with MIPSPro 7.x in ANSI C mode
+@@ -296,7 +310,7 @@
+ #endif
+ #endif
+ 
+-#ifdef _MSC_VER
++#ifdef _WIN32
+ #ifdef HAVE_DIRECT_H
+ #include <direct.h>
+ #endif
+@@ -406,7 +420,7 @@
+ 
+ #ifdef MS_WINDOWS
+ static int
+-win32_warn_bytes_api()
++win32_warn_bytes_api(void)
+ {
+     return PyErr_WarnEx(PyExc_DeprecationWarning,
+         "The Windows bytes API has been deprecated, "
+@@ -6297,7 +6311,7 @@
+ #include <tlhelp32.h>
+ 
+ static PyObject*
+-win32_getppid()
++win32_getppid(void)
+ {
+     HANDLE snapshot;
+     pid_t mypid;
+@@ -10440,7 +10454,7 @@
+ static HINSTANCE (CALLBACK *Py_ShellExecuteW)(HWND, LPCWSTR, LPCWSTR, LPCWSTR,
+                                               LPCWSTR, INT);
+ static int
+-check_ShellExecute()
++check_ShellExecute(void)
+ {
+     HINSTANCE hShell32;
+ 
+@@ -12443,7 +12457,7 @@
+ 
+ #if defined(HAVE_SYMLINK) && defined(MS_WINDOWS)
+ static int
+-enable_symlink()
++enable_symlink(void)
+ {
+     HANDLE tok;
+     TOKEN_PRIVILEGES tok_priv;
+diff -ru Python-3.6.7_clean/Modules/socketmodule.h Python-3.6.7/Modules/socketmodule.h
+--- Python-3.6.7/Modules/socketmodule.h	2018-10-20 01:24:09.000000000 -0400
++++ Python-3.6.7_patched/Modules/socketmodule.h	2021-01-02 20:15:15.227340788 -0500
+@@ -28,7 +28,7 @@
+  * I use SIO_GET_MULTICAST_FILTER to detect a decent SDK.
+  */
+ # ifdef SIO_GET_MULTICAST_FILTER
+-#  include <MSTcpIP.h> /* for SIO_RCVALL */
++#  include <mstcpip.h> /* for SIO_RCVALL */
+ #  define HAVE_ADDRINFO
+ #  define HAVE_SOCKADDR_STORAGE
+ #  define HAVE_GETADDRINFO
+diff -ru Python-3.6.7_clean/Modules/_winapi.c Python-3.6.7/Modules/_winapi.c
+--- Python-3.6.7/Modules/_winapi.c	2021-01-04 00:45:22.357716309 -0500
++++ Python-3.6.7_patched/Modules/_winapi.c	2021-01-03 02:43:55.069889480 -0500
+@@ -68,7 +68,7 @@
+ static BOOL (CALLBACK *Py_CancelIoEx)(HANDLE, LPOVERLAPPED);
+ 
+ static int
+-check_CancelIoEx()
++check_CancelIoEx(void)
+ {
+     if (has_CancelIoEx == -1)
+     {
+diff -ru Python-3.6.7_clean/PC/getpathp.c Python-3.6.7/PC/getpathp.c
+--- Python-3.6.7/PC/getpathp.c	2018-10-20 01:24:09.000000000 -0400
++++ Python-3.6.7_patched/PC/getpathp.c	2021-01-03 02:37:55.965604673 -0500
+@@ -88,7 +88,7 @@
+ #endif
+ 
+ #include <windows.h>
+-#include <Shlwapi.h>
++#include <shlwapi.h>
+ 
+ #ifdef HAVE_SYS_TYPES_H
+ #include <sys/types.h>
+@@ -968,7 +968,7 @@
+ static int python3_checked = 0;
+ static HANDLE hPython3;
+ int
+-_Py_CheckPython3()
++_Py_CheckPython3(void)
+ {
+     wchar_t py3path[MAXPATHLEN+1];
+     wchar_t *s;
+diff -ru Python-3.6.7_clean/Programs/python.c Python-3.6.7/Programs/python.c
+--- Python-3.6.7/Programs/python.c	2018-10-20 01:24:09.000000000 -0400
++++ Python-3.6.7_patched/Programs/python.c	2021-01-03 02:23:29.001256996 -0500
+@@ -9,9 +9,9 @@
+ 
+ #ifdef MS_WINDOWS
+ int
+-wmain(int argc, wchar_t **argv)
++main(int argc, char **argv)
+ {
+-    return Py_Main(argc, argv);
++    return Py_Main(argc, (wchar_t **)argv);
+ }
+ #else
+ 
+diff -ru Python-3.6.7_clean/Python/thread_nt.h Python-3.6.7/Python/thread_nt.h
+--- Python-3.6.7/Python/thread_nt.h	2018-10-20 01:24:09.000000000 -0400
++++ Python-3.6.7_patched/Python/thread_nt.h	2021-01-03 02:42:53.437474074 -0500
+@@ -32,7 +32,7 @@
+ typedef NRMUTEX *PNRMUTEX;
+ 
+ PNRMUTEX
+-AllocNonRecursiveMutex()
++AllocNonRecursiveMutex(void)
+ {
+     PNRMUTEX m = (PNRMUTEX)PyMem_RawMalloc(sizeof(NRMUTEX));
+     if (!m)

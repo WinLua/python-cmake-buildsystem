@@ -107,6 +107,11 @@ _apply_patches("${PY_VERSION_MAJOR}.${PY_VERSION_MINOR}")
 _apply_patches("${_py_version}")
 _apply_patches("${_py_version}/${CMAKE_SYSTEM_NAME}")
 _apply_patches("${_py_version}/${CMAKE_SYSTEM_NAME}-${CMAKE_C_COMPILER_ID}")
+
+if(MINGW)
+	_apply_patches("${PY_VERSION_MAJOR}.${PY_VERSION_MINOR}/mingw")
+endif()
+
 set(_version ${CMAKE_C_COMPILER_VERSION})
 if(MSVC)
   set(_version ${MSVC_VERSION})
